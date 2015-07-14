@@ -243,7 +243,8 @@ dynamic_children() ->
              saslauthd_port_spec(Config),
              run_via_goport(goxdcr_spec(Config)),
              per_bucket_moxi_specs(Config),
-             maybe_create_ssl_proxy_spec(Config)],
+             maybe_create_ssl_proxy_spec(Config),
+             run_via_goport(cbft_spec(Config))],
 
     lists:flatten(Specs).
 
@@ -556,3 +557,25 @@ memcached_spec(Config) ->
            },
 
     [expand_args(Spec, Config)].
+
+cbft_spec(Config) ->
+    %% TODO: check ns_cluster_membership:should_run_service(...)
+
+    NsRestPort = misc:node_rest_port(Config, node()),
+    FtRestPort = ns_config:search(Config, {node, node(), cbft_http_port}, 9110),
+    {ok, IdxDir} = ns_storage_conf:this_node_ixdir(),
+    FtIdxDir = filename:join(IdxDir, "@cbft"),
+    ok = misc:ensure_writable_dir(FtIdxDir),
+    FtCmd = find_executable("cbft"),
+
+    Spec = {'cbft', FtCmd,
+            [
+                   "-server=http://127.0.0.1:" ++ integer_to_list(NsRestPort),
+                   "-bindHttp=127.0.0.1:" ++ integer_to_list(FtRestPort),
+                   "-dataDir=" ++ FtIdxDir
+            ],
+            [use_stdio, exit_status, stderr_to_stdout, stream,
+             {log, ?CBFT_LOG_FILENAME},
+             {env, build_go_env_vars(Config, cbft)}]},
+
+    [Spec].

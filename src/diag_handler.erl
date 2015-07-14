@@ -536,7 +536,8 @@ do_handle_diag(Req, Extra) ->
             ?XDCR_TRACE_LOG_FILENAME,
             ?ACCESS_LOG_FILENAME, ?INT_ACCESS_LOG_FILENAME,
             ?QUERY_LOG_FILENAME, ?PROJECTOR_LOG_FILENAME,
-            ?GOXDCR_LOG_FILENAME, ?INDEXER_LOG_FILENAME],
+            ?GOXDCR_LOG_FILENAME, ?INDEXER_LOG_FILENAME,
+            ?CBFT_LOG_FILENAME],
 
     lists:foreach(fun (Log) ->
                           handle_log(Resp, Log)

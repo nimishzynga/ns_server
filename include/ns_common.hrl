@@ -77,6 +77,7 @@
 -define(QUERY_LOG_FILENAME, "query.log").
 -define(PROJECTOR_LOG_FILENAME, "projector.log").
 -define(INDEXER_LOG_FILENAME, "indexer.log").
+-define(CBFT_LOG_FILENAME, "cbft.log").
 
 -define(NS_SERVER_LOGGER, ns_server).
 -define(COUCHDB_LOGGER, couchdb).
