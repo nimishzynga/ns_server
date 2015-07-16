@@ -272,6 +272,9 @@ index_active_nodes(Config) ->
 cbft_active_nodes(Config, Status) ->
     service_active_nodes(Config, cbft, Status).
 
+cbft_active_nodes(Config, Status) ->
+    service_active_nodes(Config, cbft, Status).
+
 user_friendly_service_name(kv) ->
     data;
 user_friendly_service_name(n1ql) ->
