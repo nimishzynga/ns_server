@@ -207,7 +207,7 @@ update_recovery_type(Node, NewType) ->
     end.
 
 supported_services() ->
-    [kv, n1ql, index].
+    [kv, n1ql, index, cbft].
 
 default_services() ->
     [kv].
@@ -265,5 +265,18 @@ n1ql_active_nodes(Config) ->
 index_active_nodes() ->
     index_active_nodes(ns_config:latest_config_marker()).
 
+
 index_active_nodes(Config) ->
     service_active_nodes(Config, index).
+
+cbft_active_nodes(Config, Status) ->
+    service_active_nodes(Config, cbft, Status).
+
+user_friendly_service_name(kv) ->
+    data;
+user_friendly_service_name(n1ql) ->
+    query;
+user_friendly_service_name(cbft) ->
+    fulltext;
+user_friendly_service_name(Service) ->
+    Service.

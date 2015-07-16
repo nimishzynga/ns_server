@@ -54,6 +54,7 @@ angular.module('mnServers').controller('mnServersController',
         switch (service) {
           case 'kv': return 'Data';
           case 'n1ql': return 'N1QL';
+          case 'cbft': return 'Full-Text';
           case 'moxi': return 'Moxi';
         }
       }).value();

@@ -654,6 +654,7 @@ var ServersSection = {
       var warningFlags = {
         isLastIndex: ServersSection.isOnlyOneNodeWithService(ServersSection.allNodes, node, 'index'),
         isLastQuery: ServersSection.isOnlyOneNodeWithService(ServersSection.allNodes, node, 'n1ql'),
+        isLastFullText: ServersSection.isOnlyOneActiveNodeWithService(ServersSection.allNodes, node, 'cbft'),
         isThereIndex: !!_.find(resp, function (index) {
           return _.indexOf(index.hosts, hostname) > -1;
         }),

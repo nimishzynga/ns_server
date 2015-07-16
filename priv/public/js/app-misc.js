@@ -440,6 +440,7 @@ _.extend(ViewHelpers, {
         case 'n1ql': return 'Query';
         case 'moxi': return 'Moxi';
         case 'index': return 'Index';
+        case 'cbft': return 'Full-Text';
       }
     }).sort().join('<br>');
   },
