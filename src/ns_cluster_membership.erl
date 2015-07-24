@@ -269,11 +269,8 @@ index_active_nodes() ->
 index_active_nodes(Config) ->
     service_active_nodes(Config, index).
 
-cbft_active_nodes(Config, Status) ->
-    service_active_nodes(Config, cbft, Status).
-
-cbft_active_nodes(Config, Status) ->
-    service_active_nodes(Config, cbft, Status).
+cbft_active_nodes(Config) ->
+    service_active_nodes(Config, cbft).
 
 user_friendly_service_name(kv) ->
     data;
