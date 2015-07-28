@@ -569,12 +569,15 @@ cbft_spec(Config) ->
             FtIdxDir = filename:join(IdxDir, "@cbft"),
             ok = misc:ensure_writable_dir(FtIdxDir),
             FtCmd = find_executable("cbft"),
+            {_, NsRestHost} = misc:node_name_host(node()),
 
             Spec = {'cbft', FtCmd,
                  [
+                   "-cfg=metakv",
                    "-server=http://127.0.0.1:" ++ integer_to_list(NsRestPort),
                    "-bindHttp=127.0.0.1:" ++ integer_to_list(FtRestPort),
-                   "-dataDir=" ++ FtIdxDir
+                   "-dataDir=" ++ FtIdxDir,
+                   "-extra="++ io_lib:format("~s:~b",[NsRestHost, NsRestPort])
                  ],
                  [use_stdio, exit_status, stderr_to_stdout, stream,
                   {log, ?CBFT_LOG_FILENAME},
