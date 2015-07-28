@@ -22,7 +22,7 @@
 -define(TIMEOUT, ns_config:get_timeout(index_rest_request, 10000)).
 
 get_json(Path) ->
-    Port = ns_config:read_key_fast({node, node(), cbft}, 9200),
+    Port = ns_config:read_key_fast({node, node(), cbft_http_port}, 9200),
     URL = lists:flatten(io_lib:format("http://127.0.0.1:~B/~s", [Port, Path])),
 
     User = ns_config_auth:get_user(special),
