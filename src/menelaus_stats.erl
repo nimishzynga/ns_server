@@ -39,6 +39,9 @@
 -import(index_stats_collector,
         [per_index_stat/2, global_index_stat/1]).
 
+-import(cbft_stats_collector,
+        [per_cbft_stat/2, global_cbft_stat/1]).
+
 %% External API
 bucket_disk_usage(BucketName) ->
     {_, _, _, _, DiskUsed, _}
@@ -347,7 +350,7 @@ get_samples_from_one_of_kind([Kind | RestKinds], StatName, ClientTStamp, Window)
     end.
 
 get_samples_for_system_or_bucket_stat(BucketName, StatName, ClientTStamp, Window) ->
-    get_samples_from_one_of_kind(["@system", "@query", "@index-" ++ BucketName,
+    get_samples_from_one_of_kind(["@system", "@query", "@cbft-" ++ BucketName, "@index-" ++ BucketName,
                                   "@xdcr-" ++ BucketName, BucketName],
                                  StatName, ClientTStamp, Window).
 
@@ -437,7 +440,7 @@ section_nodes("@index-"++_) ->
     ns_cluster_membership:index_active_nodes(ns_config:latest_config_marker());
 section_nodes("@xdcr-"++Bucket) ->
     ns_bucket:live_bucket_nodes(Bucket);
-section_nodes("@fulltext") ->
+section_nodes("@cbft-"++_) ->
     ns_cluster_membership:cbft_active_nodes(ns_config:latest_config_marker());
 section_nodes(Bucket) ->
     ns_bucket:live_bucket_nodes(Bucket).
@@ -445,6 +448,8 @@ section_nodes(Bucket) ->
 is_persistent("@query") ->
     false;
 is_persistent("@index-"++_) ->
+    false;
+is_persistent("@cbft-"++_) ->
     false;
 is_persistent("@xdcr-"++_) ->
     false;
@@ -459,6 +464,8 @@ section_exists("@system") ->
 section_exists("@query") ->
     true;
 section_exists("@index-"++Bucket) ->
+    bucket_exists(Bucket);
+section_exists("@cbft-"++Bucket) ->
     bucket_exists(Bucket);
 section_exists("@xdcr-"++Bucket) ->
     bucket_exists(Bucket);
@@ -1310,6 +1317,69 @@ do_couchbase_index_stats_descriptions(BucketId, AddIndex) ->
                            {desc, <<"Average time taken to serve a scan request">>}]}]}]}
      || Id <- AllIndexes].
 
+couchbase_cbft_stats_descriptions(_, false) ->
+    [];
+couchbase_cbft_stats_descriptions(BucketId, AddCbft) ->
+    simple_memoize({stats_directory_cbft, BucketId, AddCbft},
+                   fun () ->
+                           do_couchbase_cbft_stats_descriptions(BucketId, AddCbft)
+                   end, 5000).
+
+do_couchbase_cbft_stats_descriptions(BucketId, AddCbft) ->
+    Nodes = case AddCbft of
+                all ->
+                    section_nodes("@cbft-" ++ BucketId);
+                XNodes ->
+                    XNodes
+            end,
+    AllIndexes = do_get_cbfts(BucketId, Nodes),
+    [{struct, [{blockName, <<"CBFT Stats: ", Id/binary>>},
+               {extraCSSClasses, <<"dynamic_closed">>},
+               {stats,
+                [{struct, [{title, <<"items">>},
+                           {name, per_cbft_stat(Id, <<"doc_count">>)},
+                           {desc, <<"Number of documents">>}]},
+                 {struct, [{title, <<"pindexes">>},
+                           {name, per_cbft_stat(Id, <<"num_pindexes">>)},
+                           {desc, <<"Number of PIndexes">>}]},
+                 {struct, [{title, <<"batch executes/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_batch_execute_count">>)},
+                           {desc, <<"Number of batch execute ops">>}]},
+                 {struct, [{title, <<"batch merges/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_batch_merge_count">>)},
+                           {desc, <<"Number of batch merge ops">>}]},
+                 {struct, [{title, <<"batch stores/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_batch_store_count">>)},
+                           {desc, <<"Number of batch store ops">>}]},
+                 {struct, [{title, <<"iterator nexts/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_iterator_next_count">>)},
+                           {desc, <<"Number of iterator next ops">>}]},
+                 {struct, [{title, <<"iterator seeks/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_iterator_seek_count">>)},
+                           {desc, <<"Number of iterator seek ops">>}]},
+                 {struct, [{title, <<"iterator seek-firsts/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_iterator_seek_first_count">>)},
+                           {desc, <<"Number of iterator seek first ops">>}]},
+                 {struct, [{title, <<"reader gets/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_reader_get_count">>)},
+                           {desc, <<"Number of reader get ops">>}]},
+                 {struct, [{title, <<"reader iterators/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_reader_iterator_count">>)},
+                           {desc, <<"Number of reader iterator ops">>}]},
+                 {struct, [{title, <<"writer deletes/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_writer_delete_count">>)},
+                           {desc, <<"Number of writer delete ops">>}]},
+                 {struct, [{title, <<"writer gets/sec">>},
+                           {name, per_cbft_stat(Id, <<"timer_writer_get_count">>)},
+                           {desc, <<"Number of writer gets/sec">>}]},
+                 {struct, [{title, <<"writer iterator count">>},
+                           {name, per_cbft_stat(Id, <<"timer_writer_iterator_count">>)},
+                           {desc, <<"Number of writer iterators/sec">>}]},
+                 {struct, [{title, <<"writer set count">>},
+                           {name, per_cbft_stat(Id, <<"timer_writer_set_count">>)},
+                           {desc, <<"Number of writer sets/sec">>}]}]}]}
+     || Id <- AllIndexes].
+
 couchbase_query_stats_descriptions() ->
     [{struct, [{blockName, <<"Query">>},
                {extraCSSClasses, <<"dynamic_closed">>},
@@ -1351,7 +1421,7 @@ couchbase_query_stats_descriptions() ->
                            {name, <<"query_requests_5000ms">>},
                            {desc, <<"Number of queries that take longer than 5000 ms per second">>}]}]}]}].
 
-membase_stats_description(BucketId, AddQuery, AddIndex) ->
+membase_stats_description(BucketId, AddQuery, AddIndex, AddCbft) ->
     [{struct,[{blockName,<<"Summary">>},
               {stats,
                [{struct,[{title,<<"ops per second">>},
@@ -1495,7 +1565,24 @@ membase_stats_description(BucketId, AddQuery, AddIndex) ->
                                    {struct, [{title, <<"index scanned/sec">>},
                                              {name, global_index_stat(<<"num_rows_returned">>)},
                                              {desc, <<"Number of index items scanned by the indexer per second">>}]}]
-                          end)
+                          end ++ case AddCbft of
+                            false ->
+                                [];
+                            _ ->
+                                [{struct, [{title, <<"cbft reader gets/sec">>},
+                                             {name, global_cbft_stat(<<"timer_reader_get_count">>)},
+                                             {desc, <<"Number of cbft reader get ops per second">>}]},
+                                 {struct, [{title, <<"cbft iterator nexts/sec">>},
+                                             {name, global_cbft_stat(<<"timer_iterator_next_count">>)},
+                                             {desc, <<"Number of cbft iterator next ops per second">>}]},
+                                 {struct, [{title, <<"cbft batch executes/sec">>},
+                                             {name, global_cbft_stat(<<"timer_batch_execute_count">>)},
+                                             {desc, <<"Number of cbft batch execute ops per second">>}]},
+                                 {struct, [{title, <<"cbft writer sets/sec">>},
+                                             {name, global_cbft_stat(<<"timer_writer_set_count">>)},
+                                             {desc, <<"Number of cbft writer set ops per second">>}]}]
+                                 end
+                     )
              ]}]},
      {struct,[{blockName,<<"vBucket Resources">>},
               {extraCSSClasses,<<"dynamic_withtotal dynamic_closed">>},
@@ -1808,6 +1895,7 @@ membase_stats_description(BucketId, AddQuery, AddIndex) ->
                ]}]}]
         ++ couchbase_view_stats_descriptions(BucketId)
         ++ couchbase_index_stats_descriptions(BucketId, AddIndex)
+        ++ couchbase_cbft_stats_descriptions(BucketId, AddCbft)
         ++ couchbase_replication_stats_descriptions(BucketId)
         ++ couchbase_goxdcr_stats_descriptions(BucketId)
         ++ case AddQuery of
@@ -1937,10 +2025,10 @@ server_resources_stats_description() ->
                 {title,<<"streaming wakeups/sec">>},
                 {desc,<<"Rate of streaming request wakeups on port 8091">>}]}]}].
 
-base_stats_directory(BucketId, AddQuery, AddIndex) ->
+base_stats_directory(BucketId, AddQuery, AddIndex, AddCbft) ->
     {ok, BucketConfig} = ns_bucket:get_bucket(BucketId),
     Base = case ns_bucket:bucket_type(BucketConfig) of
-               membase -> membase_stats_description(BucketId, AddQuery, AddIndex);
+               membase -> membase_stats_description(BucketId, AddQuery, AddIndex, AddCbft);
                memcached -> memcached_stats_description()
            end,
     [{struct, server_resources_stats_description()} | Base].
@@ -1959,7 +2047,18 @@ serve_stats_directory(_PoolId, BucketId, Req) ->
                                [binary_to_existing_atom(N, latin1) || N <- AddIndexDecoded]
                        end
                end,
-    BaseDescription = base_stats_directory(BucketId, AddQuery, AddIndex),
+    AddCbft = case proplists:get_value("addc", Params) of
+                   undefined ->
+                       false;
+                   AddCbftX ->
+                       case ejson:decode(AddCbftX) of
+                           <<"all">> ->
+                               all;
+                           AddCbftDecoded ->
+                               [binary_to_existing_atom(N, latin1) || N <- AddCbftDecoded]
+                       end
+               end,
+    BaseDescription = base_stats_directory(BucketId, AddQuery, AddIndex, AddCbft),
     Prefix = menelaus_util:concat_url_path(["pools", "default", "buckets", BucketId, "stats"]),
     Desc = [{struct, add_specific_stats_url(BD, Prefix)} || {struct, BD} <- BaseDescription],
     menelaus_util:reply_json(Req, {struct, [{blocks, Desc}]}).
@@ -2107,14 +2206,35 @@ serve_aggregated_ui_stats(Req, Params) ->
                           [{iolist_to_binary([<<"@index-">>, Bucket]), {IS}}
                            | MaybeQStats]
                   end,
+    CNodes = section_nodes("@cbft-" ++ Bucket),
+    HaveCbftBool  = case Nodes of
+                         all ->
+                             CNodes =/= [];
+                         _ ->
+                             (Nodes -- CNodes) =/= Nodes
+                     end,
+    HaveCbft = case HaveCbftBool of
+                    true ->
+                        Nodes;
+                    false ->
+                        false
+                end,
+    MaybeCStats = case HaveCbft of
+                      false ->
+                          MaybeIStats;
+                      _ ->
+                          CS = grab_ui_stats("@cbft-" ++ Bucket, Nodes, HaveStamp, Wnd),
+                          [{iolist_to_binary([<<"@cbft-">>, Bucket]), {CS}}
+                           | MaybeIStats]
+                  end,
     Stats = [{list_to_binary(Bucket), {BS}},
              {<<"@system">>, {SS}}
-             | MaybeIStats],
+             | MaybeCStats],
     NewHaveStamp = [case proplists:get_value(timestamp, S) of
                         [] -> {Name, 0};
                         L -> {Name, lists:last(L)}
                     end || {Name, {S}} <- Stats],
-    StatsDirectoryV = erlang:phash2(base_stats_directory(Bucket, HaveQuery, HaveIndex)),
+    StatsDirectoryV = erlang:phash2(base_stats_directory(Bucket, HaveQuery, HaveIndex, HaveCbft)),
     DirAddQ = case HaveQuery of
                   true ->
                       [{addq, <<"1">>}];
@@ -2127,7 +2247,13 @@ serve_aggregated_ui_stats(Req, Params) ->
                       NodesJSON = iolist_to_binary(ejson:encode(Nodes)),
                       [{addi, NodesJSON} | DirAddQ]
               end,
-    DirQS = [{v, integer_to_list(StatsDirectoryV)} | DirAddI],
+    DirAddC = case HaveCbft of
+                  false -> DirAddI;
+                  _ ->
+                      NodesCJSON = iolist_to_binary(ejson:encode(Nodes)),
+                      [{addc, NodesCJSON} | DirAddI]
+              end,
+    DirQS = [{v, integer_to_list(StatsDirectoryV)} | DirAddC],
     DirURL = "/pools/default/buckets/" ++ menelaus_util:concat_url_path([Bucket, "statsDirectory"], DirQS),
 
     [{hot_keys, HKs0}] = build_bucket_stats_hks_response(Bucket),
@@ -2149,7 +2275,7 @@ serve_specific_ui_stats(Req, StatName, Params) ->
     {Bucket, HaveStamp, Wnd} = extract_ui_stats_params(Params),
     ClientTStamp = proplists:get_value(<<"perNode">>, HaveStamp),
 
-    FullDirectory = base_stats_directory(Bucket, true, all),
+    FullDirectory = base_stats_directory(Bucket, true, all, all),
     StatNameB = list_to_binary(StatName),
     MaybeStatDesc = [Desc
                      || Block <- FullDirectory,
@@ -2264,6 +2390,32 @@ do_get_indexes(BucketId0, Nodes) ->
 
     BucketId = list_to_binary(BucketId0),
     {ok, Indexes} = index_status_keeper:get_indexes(),
+    [begin
+         {index, Name} = lists:keyfind(index, 1, I),
+         Name
+     end || I <- Indexes,
+            proplists:get_value(bucket, I) =:= BucketId,
+            not(ordsets:is_disjoint(WantedHosts,
+                                    lists:usort(proplists:get_value(hosts, I))))].
+
+get_cbfts(BucketId) ->
+    simple_memoize({cbfts, BucketId},
+                   fun () ->
+                           Nodes = section_nodes("@cbft-" ++ BucketId),
+                           do_get_indexes(BucketId, Nodes)
+                   end, 5000).
+
+do_get_cbfts(BucketId0, Nodes) ->
+    WantedHosts0 =
+        [begin
+             {_, Host} = misc:node_name_host(N),
+             Port = misc:node_rest_port(N),
+             iolist_to_binary([Host, $:, integer_to_list(Port)])
+         end || N <- Nodes],
+    WantedHosts = lists:usort(WantedHosts0),
+
+    BucketId = list_to_binary(BucketId0),
+    {ok, Indexes, _Stale, _Version} = cbft_status_keeper:get_indexes(),
     [begin
          {index, Name} = lists:keyfind(index, 1, I),
          Name

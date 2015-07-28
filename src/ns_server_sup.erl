@@ -142,6 +142,10 @@ child_specs() ->
      {master_activity_events_keeper, {master_activity_events_keeper, start_link, []},
       permanent, brutal_kill, worker, dynamic},
 
+     {cbft_events,
+      {gen_event, start_link, [{local, cbft_events}]},
+      permanent, brutal_kill, worker, dynamic},
+
      {xdcr_ckpt_store,
       {simple_store, start_link, [?XDCR_CHECKPOINT_STORE]},
       permanent, 1000, worker, []},
@@ -246,6 +250,9 @@ child_specs() ->
 
      {index_settings_sup, {index_settings_sup, start_link, []},
       permanent, infinity, supervisor, [index_settings_sup]},
+
+     {cbft_stats_sup, {cbft_stats_sup, start_link, []},
+      permanent, infinity, supervisor, []},
 
      {compaction_daemon, {compaction_daemon, start_link, []},
       permanent, 1000, worker, [compaction_daemon]},

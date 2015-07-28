@@ -51,6 +51,7 @@
          should_run_service/3,
          service_active_nodes/2,
          n1ql_active_nodes/1,
+         cbft_active_nodes/1,
          index_active_nodes/0,
          index_active_nodes/1]).
 
