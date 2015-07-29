@@ -1377,7 +1377,25 @@ do_couchbase_cbft_stats_descriptions(BucketId, AddCbft) ->
                            {desc, <<"Number of writer iterators/sec">>}]},
                  {struct, [{title, <<"writer set count">>},
                            {name, per_cbft_stat(Id, <<"timer_writer_set_count">>)},
-                           {desc, <<"Number of writer sets/sec">>}]}]}]}
+                           {desc, <<"Number of writer sets/sec">>}]},
+                 {struct, [{title, <<"opaque set count">>},
+                           {name, per_cbft_stat(Id, <<"timer_opaque_set_count">>)},
+                           {desc, <<"Number of opaque sets/sec">>}]},
+                 {struct, [{title, <<"opaque get count">>},
+                           {name, per_cbft_stat(Id, <<"timer_opaque_get_count">>)},
+                           {desc, <<"Number of opaque gets/sec">>}]},
+                 {struct, [{title, <<"data update count">>},
+                           {name, per_cbft_stat(Id, <<"timer_data_update_count">>)},
+                           {desc, <<"Number of data updates/sec">>}]},
+                 {struct, [{title, <<"data delete count">>},
+                           {name, per_cbft_stat(Id, <<"timer_data_delete_count">>)},
+                           {desc, <<"Number of data deletes/sec">>}]},
+                 {struct, [{title, <<"snapshot start count">>},
+                           {name, per_cbft_stat(Id, <<"timer_snapshot_start_count">>)},
+                           {desc, <<"Number of snapshot starts/sec">>}]},
+                 {struct, [{title, <<"rollback count">>},
+                           {name, per_cbft_stat(Id, <<"timer_rollback_count">>)},
+                           {desc, <<"Number of rollbacks/sec">>}]}]}]}
      || Id <- AllIndexes].
 
 couchbase_query_stats_descriptions() ->

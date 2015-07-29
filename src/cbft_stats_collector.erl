@@ -35,7 +35,9 @@
 -define(I_COUNTERS, [timer_batch_execute_count, timer_batch_merge_count, timer_batch_store_count,
                         timer_iterator_next_count, timer_iterator_seek_count, timer_iterator_seek_first_count,
                         timer_reader_get_count, timer_reader_iterator_count, timer_writer_delete_count,
-                        timer_writer_get_count, timer_writer_iterator_count, timer_writer_set_count]).
+                        timer_writer_get_count, timer_writer_iterator_count, timer_writer_set_count,
+                        timer_opaque_set_count, timer_rollback_count, timer_data_update_count,
+                        timer_data_delete_count, timer_snapshot_start_count, timer_opaque_get_count]).
 
 start_link() ->
     base_stats_collector:start_link({local, ?MODULE}, ?MODULE, []).
