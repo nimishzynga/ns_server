@@ -1333,7 +1333,7 @@ do_couchbase_cbft_stats_descriptions(BucketId, AddCbft) ->
                     XNodes
             end,
     AllIndexes = do_get_cbfts(BucketId, Nodes),
-    [{struct, [{blockName, <<"CBFT Stats: ", Id/binary>>},
+    [{struct, [{blockName, <<"Full Text Search Stats: ", Id/binary>>},
                {extraCSSClasses, <<"dynamic_closed">>},
                {stats,
                 [{struct, [{title, <<"items">>},
@@ -1587,18 +1587,18 @@ membase_stats_description(BucketId, AddQuery, AddIndex, AddCbft) ->
                             false ->
                                 [];
                             _ ->
-                                [{struct, [{title, <<"cbft reader gets/sec">>},
+                                [{struct, [{title, <<"fts reader gets/sec">>},
                                              {name, global_cbft_stat(<<"timer_reader_get_count">>)},
-                                             {desc, <<"Number of cbft reader get ops per second">>}]},
-                                 {struct, [{title, <<"cbft iterator nexts/sec">>},
+                                             {desc, <<"Number of fts reader get ops per second">>}]},
+                                 {struct, [{title, <<"fts iterator nexts/sec">>},
                                              {name, global_cbft_stat(<<"timer_iterator_next_count">>)},
-                                             {desc, <<"Number of cbft iterator next ops per second">>}]},
-                                 {struct, [{title, <<"cbft batch executes/sec">>},
+                                             {desc, <<"Number of fts iterator next ops per second">>}]},
+                                 {struct, [{title, <<"fts batch executes/sec">>},
                                              {name, global_cbft_stat(<<"timer_batch_execute_count">>)},
-                                             {desc, <<"Number of cbft batch execute ops per second">>}]},
-                                 {struct, [{title, <<"cbft writer sets/sec">>},
+                                             {desc, <<"Number of fts batch execute ops per second">>}]},
+                                 {struct, [{title, <<"fts writer sets/sec">>},
                                              {name, global_cbft_stat(<<"timer_writer_set_count">>)},
-                                             {desc, <<"Number of cbft writer set ops per second">>}]}]
+                                             {desc, <<"Number of fts writer set ops per second">>}]}]
                                  end
                      )
              ]}]},
