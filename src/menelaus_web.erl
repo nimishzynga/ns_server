@@ -368,7 +368,10 @@ loop_inner(Req, AppRoot, Path, PathTokens) ->
                                                              [{"Cache-Control", "max-age=30000000"}])};
                          ["couchBase" | _] -> {auth, fun capi_http_proxy:handle_request/1};
                          ["sampleBuckets"] -> {auth_ro, fun handle_sample_buckets/1};
+                         ["cbft" | P] ->
+                            {cbft, fun cbft_proxy:cbft_forward_request/4, [Path]};
                          _ ->
+                             ?log_error("inside default request ~s", [Path]),
                              {done, menelaus_util:serve_file(Req, Path, AppRoot,
                                                              [{"Cache-Control", "max-age=10"}])}
                      end;
@@ -609,7 +612,10 @@ loop_inner(Req, AppRoot, Path, PathTokens) ->
         {auth_any_bucket, F, Args} ->
             auth_any_bucket(Req, F, Args);
         {auth_check_bucket_uuid, F, Args} ->
-            auth_check_bucket_uuid(Req, F, Args)
+            auth_check_bucket_uuid(Req, F, Args);
+        {cbft, F, Pathcbft} ->
+            F("GET", Pathcbft, [], Req)
+            %reply_ok(Req, "text/html", Data)
     end.
 
 handle_uilogin(Req) ->

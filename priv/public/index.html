@@ -47,6 +47,7 @@
           <li class="line"><a class="switch_buckets" href="#visitSec=buckets">Data Buckets</a></li>
           <li class="line"><a class="switch_views" href="#visitSec=views">Views</a></li>
           <li class="line"><a class="switch_indexes" href="#visitSec=indexes">Index</a></li>
+          <li class="line"><a class="switch_cbft" href="#visitSec=cbft">Full Text</a></li>
           <li class="line"><a class="switch_replications" href="#visitSec=replications">XDCR</a></li>
           <li class="line"><a class="switch_log" href="#visitSec=log">Log</a></li>
           <li class="line" id="nav_settings_container"><a href="#visitSec=settings" class="switch_settings">Settings</a></li>
@@ -2009,6 +2010,12 @@
           </div>
         </div>
 
+        <div id="js_cbft" class="cbft" style="display:none">
+          <div id="cbft_id">
+          </div>
+        </div>
+
+
         <div id="js_replications" class="replications" style="display:none">
           <h1>Replications</h1>
           <!-- Clusters -->
@@ -3903,6 +3910,7 @@ $(window).bind('template:rendered', function () {
 <script src="js/groups.js"></script>
 <script src="js/servers.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/cbft.js"></script>
 <script src="js/buckets.js"></script>
 <script src="js/filter.js"></script>
 <script src="js/views.js"></script>
