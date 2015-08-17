@@ -65,9 +65,10 @@ cbft_forward_request(Method, P, Body, Req) ->
 
     case RV of
     {ok, {{200, _}, Headers1, BodyRaw1}} ->
-        Bd = re:replace(BodyRaw1, "/static", "/cbft&", [{return,list}, global]),
+        Bd = re:replace(BodyRaw1, "src=\"", "src=\"/cbft", [{return,list}, global]),
+        Bd2 = re:replace(Bd, "href=\"", "href=\"/cbft", [{return,list}, global]),
         %?log_error("Got response xxx ~p", [Bd]),
-        reply_ok(Req, "text/html", Bd);
+        reply_ok(Req, "text/html", Bd2);
     {ok, {{302, _}, Headers2, BodyRaw2}} ->
         % currently this is hack.need to change it.
         NewT = {"Location","/cbft/staticx/"},
@@ -75,6 +76,6 @@ cbft_forward_request(Method, P, Body, Req) ->
         %Headers3 = re:replace(Headers2, "staticx", "/cbft/&", [{return,list}]),
         reply(Req, 302, Headers3);
     _ ->
-        ?log_error("Request to ~s failed: ~p", [URL, RV]),
+        ?log_error("Request to ~s failed: ~p path1 ~p path2 ~p", [URL, RV, Path1, Path2]),
         {error, RV}
     end.

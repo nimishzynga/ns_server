@@ -16,13 +16,20 @@
 
 var CbftSection = {
   init: function () {
+  ifrm = document.createElement("IFRAME"); 
+     ifrm.setAttribute("src", "http://localhost:9200"); 
+     ifrm.style.width = 1050+"px"; 
+     ifrm.style.height = 800+"px";
+     document.getElementById("js_cbft").appendChild(ifrm); 
+     /*
       IOCenter.performGet({
       type: 'GET',
       url: '/cbft/indexes/index.html',
       success: function (data) {
         $('#cbft_id').html(data);
+        $.noConflict(true);
       }
-    });
+    });*/
   },
   onEnter: function () {
   },
